@@ -1,40 +1,45 @@
 package main
 
 import (
-    "encoding/json"
-    "log"
-    "net/http"
-    "github.com/gorilla/mux"
+	"fmt"
+	"encoding/json"
+	"log"
+	"net/http"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-type Person struct {
-    ID        string   `json:"id,omitempty"`
-    Firstname string   `json:"firstname,omitempty"`
-    Lastname  string   `json:"lastname,omitempty"`
-    Address   *Address `json:"address,omitempty"`
+type Fact struct {
+    gorm.Model
+    Text 	string
 }
-type Address struct {
-    City  string `json:"city,omitempty"`
-    State string `json:"state,omitempty"`
-}
+
 
 // fun main()
 func main() {
-    router := mux.NewRouter()
-    router.HandleFunc("/people", GetPeople).Methods("GET")
-    router.HandleFunc("/people/{id}", GetPerson).Methods("GET")
-    router.HandleFunc("/people/{id}", CreatePerson).Methods("POST")
-    router.HandleFunc("/people/{id}", DeletePerson).Methods("DELETE")
-    log.Fatal(http.ListenAndServe(":8000", router))
+	router := mux.NewRouter()
+	router.HandleFunc("/facts", GetFacts).Methods("GET")
+	// router.HandleFunc("/people/{id}", GetPerson).Methods("GET")
+	// router.HandleFunc("/people/{id}", CreatePerson).Methods("POST")
+	// router.HandleFunc("/people/{id}", DeletePerson).Methods("DELETE")
+	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
-func GetPeople(w http.ResponseWriter, r *http.Request) {
-    var people []Person
-    people = append(people, Person{ID: "1", Firstname: "John", Lastname: "Doe", Address: &Address{City: "City X", State: "State X"}})
-    people = append(people, Person{ID: "2", Firstname: "Koko", Lastname: "Doe", Address: &Address{City: "City Z", State: "State Y"}})
-    people = append(people, Person{ID: "3", Firstname: "Francis", Lastname: "Sunday"})
-    json.NewEncoder(w).Encode(people)
+func GetFacts(w http.ResponseWriter, r *http.Request) {
+	// db connection
+	db, err := gorm.Open("postgres", "user=rohan dbname=fun_facts sslmode=disable")
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer db.Close()
+
+	facts := []Fact{}
+	db.Find(&facts)
+
+	json.NewEncoder(w).Encode(facts)
 }
-func GetPerson(w http.ResponseWriter, r *http.Request) {}
-func CreatePerson(w http.ResponseWriter, r *http.Request) {}
-func DeletePerson(w http.ResponseWriter, r *http.Request) {}
+// func GetPerson(w http.ResponseWriter, r *http.Request) {}
+// func CreatePerson(w http.ResponseWriter, r *http.Request) {}
+// func DeletePerson(w http.ResponseWriter, r *http.Request) {}
