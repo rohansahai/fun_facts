@@ -12,5 +12,5 @@ func startRouter() {
 	r.PUT("/facts/:id", UpdateFact)
 	r.DELETE("/facts/:id", DeleteFact)
 
-	r.Run(":8080")
+	r.Run()
 }
