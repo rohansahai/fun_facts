@@ -1,1 +1,1 @@
-web: go run main.go routes.go controller.go
+web: fun_facts
